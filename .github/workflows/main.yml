@@ -1,0 +1,67 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: check out the code
+      uses: actions/checkout@v4
+    
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    
+    - name: Log in to Aliyun Docker Registry
+      env:
+        ALIYUN_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        ALIYUN_DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        ALIYUN_DOCKER_URL: ${{ secrets.DOCKER_LOGIN_URL }}
+      run: |
+        echo "${ALIYUN_DOCKER_PASSWORD}" | docker login "${ALIYUN_DOCKER_URL}" --username "${ALIYUN_DOCKER_USERNAME}" --password-stdin
+    
+    - name: Remove old Docker images
+      run: |
+        docker images --format '{{.Repository}}:{{.Tag}}' | grep 'registry.cn-hangzhou.aliyuncs.com/sarariman/demo' | xargs -I {} docker rmi -f {}
+    
+    - name: Build Docker image
+      run: docker build -f .github/workflows/Dockerfile -t springbuild .github/workflows/
+    
+    - name: Tag Docker image
+      run: docker tag springbuild 阿里云镜像仓库tag:latest
+    
+    - name: Push Docker image to Aliyun registry
+      run: docker push 阿里云镜像仓库地址:latest
+    
+    - name: Set up SSH using username and password
+      env:
+        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        SSH_USER: ${{ secrets.SERVER_USER_NAME }}
+        SERVER_IP: ${{ secrets.SERVER_IP }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y sshpass
+        sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+          # Stop and remove old container
+          sudo docker ps -q -f "name=容器名称" | xargs -r sudo docker stop
+          sudo docker ps -aq -f "name=容器名称" | xargs -r sudo docker rm
+    
+            # Remove old Docker images
+            sudo docker image prune -a -f
+            
+            # Remove the specific Docker image
+            sudo docker rmi -f 镜像名称
+    
+            # Pull the new Docker image
+            sudo docker pull 镜像名称
+    
+            # Run the new container
+            sudo docker run -d --name 容器名称--restart unless-stopped -p 80:80 镜像名称:latest
+          EOF

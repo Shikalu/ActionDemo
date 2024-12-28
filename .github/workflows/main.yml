@@ -28,7 +28,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:"${BUILD_TIMESTAMP}"
+      run: docker build . --file Dockerfile --tag my-image-name:${{env.BUILD_TIMESTAMP }}
 
     - name: Log in to Aliyun Docker Registry
 
@@ -41,7 +41,7 @@ jobs:
         docker images --format '{{.Repository}}:{{.Tag}}' | grep 'registry.cn-hangzhou.aliyuncs.com/sarariman/demo' | xargs -r docker rmi -f {}
 
     - name: Tag Docker image
-      run: docker tag my-image-name:"${BUILD_TIMESTAMP}" ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
+      run: docker tag my-image-name:${{env.BUILD_TIMESTAMP }} ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
 
     - name: Push Docker image to Aliyun registry
       run: docker push ${ALIYUN_DOCKER_URL}/sarariman/demo:latest

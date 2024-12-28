@@ -2,7 +2,6 @@ name: Docker Image CI
 
 on:
   workflow_dispatch:
-  
   push:
     branches: [ "main" ]
   pull_request:
@@ -12,38 +11,43 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    env:
-      ALIYUN_DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
-      ALIYUN_DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
-      ALIYUN_DOCKER_URL: ${{secrets.DOCKER_LOGIN_URL}}
-      SSH_PASSWORD: ${{secrets.SSH_PASSWORD}}
-      SSH_USER: ${{secrets.SERVER_USER_NAME}}
-      SERVER_IP: ${{secrets.SERVER_IP}}
-      DOCKER_IMAGE: ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
-      BUILD_TIMESTAMP: ${{ github.event_number }}
-      CONTAINER_NAME: demo-container
     
+    env:
+      ALIYUN_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      ALIYUN_DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      ALIYUN_DOCKER_URL: ${{ secrets.DOCKER_LOGIN_URL }}
+      SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+      SSH_USER: ${{ secrets.SERVER_USER_NAME }}
+      SERVER_IP: ${{ secrets.SERVER_IP }}
+      DOCKER_IMAGE_LATEST: ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
+      CONTAINER_NAME: demo-container
+      BUILD_TIMESTAMP: ${{ github.run_number }} # 使用唯一的运行编号作为时间戳
+
     steps:
     - name: Check out the code
       uses: actions/checkout@v4
 
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:${{env.BUILD_TIMESTAMP }}
+      run: docker build . --file Dockerfile --tag my-image-name:${{ env.BUILD_TIMESTAMP }}
 
     - name: Log in to Aliyun Docker Registry
-
       run: |
         echo "${ALIYUN_DOCKER_PASSWORD}" | docker login "${ALIYUN_DOCKER_URL}" --username "${ALIYUN_DOCKER_USERNAME}" --password-stdin
 
-    # Remove this step if you don't need to remove old images before building a new one.
     - name: Remove old Docker images (Optional)
       run: |
         docker images --format '{{.Repository}}:{{.Tag}}' | grep 'registry.cn-hangzhou.aliyuncs.com/sarariman/demo' | xargs -r docker rmi -f {}
 
-    - name: Tag Docker image
-      run: docker tag my-image-name:${{env.BUILD_TIMESTAMP }} ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
+    - name: Tag Docker image with timestamp
+      run: docker tag my-image-name:${{ env.BUILD_TIMESTAMP }} ${ALIYUN_DOCKER_URL}/sarariman/demo:${{ env.BUILD_TIMESTAMP }}
 
-    - name: Push Docker image to Aliyun registry
+    - name: Push Docker image with timestamp to Aliyun registry
+      run: docker push ${ALIYUN_DOCKER_URL}/sarariman/demo:${{ env.BUILD_TIMESTAMP }}
+
+    - name: Tag Docker image as latest
+      run: docker tag my-image-name:${{ env.BUILD_TIMESTAMP }} ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
+
+    - name: Push Docker image as latest to Aliyun registry
       run: docker push ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
 
     - name: Deploy to Server via SSH
@@ -55,8 +59,8 @@ jobs:
           sudo docker ps -aq -f "name=${CONTAINER_NAME}" | xargs -r sudo docker rm
 
           # Pull the new Docker image
-          sudo docker pull ${DOCKER_IMAGE}
+          sudo docker pull ${DOCKER_IMAGE_LATEST}
 
           # Run the new container
-          sudo docker run -d --name ${CONTAINER_NAME} --restart unless-stopped -p 80:80 ${DOCKER_IMAGE}
+          sudo docker run -d --name ${CONTAINER_NAME} --restart unless-stopped -p 80:80 ${DOCKER_IMAGE_LATEST}
         EOF

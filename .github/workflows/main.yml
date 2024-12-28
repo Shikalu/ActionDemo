@@ -34,9 +34,13 @@ jobs:
         docker images --format '{{.Repository}}:{{.Tag}}' | grep 'registry.cn-hangzhou.aliyuncs.com/sarariman/demo' | xargs -r docker rmi -f {}
 
     - name: Tag Docker image
+      env:
+        ALIYUN_DOCKER_URL: ${{secrets.DOCKER_LOGIN_URL}}
       run: docker tag my-image-name:$(date +%s) ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
 
     - name: Push Docker image to Aliyun registry
+      env:
+        ALIYUN_DOCKER_URL: ${{secrets.DOCKER_LOGIN_URL}}
       run: docker push ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
 
     - name: Deploy to Server via SSH

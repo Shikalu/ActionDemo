@@ -32,7 +32,7 @@ jobs:
 
     - name: Log in to Aliyun Docker Registry
       run: |
-        echo "${ALIYUN_DOCKER_PASSWORD}" | docker login "${ALIYUN_DOCKER_URL}" --username "${ALIYUN_DOCKER_USERNAME}" --password-stdin
+        echo "${{ env.ALIYUN_DOCKER_PASSWORD }}" | docker login "${{ env.ALIYUN_DOCKER_URL }}" --username "${{ env.ALIYUN_DOCKER_USERNAME }}" --password-stdin
 
     - name: Remove old Docker images (Optional)
       run: |
@@ -52,14 +52,14 @@ jobs:
 
     - name: Deploy to Server via SSH
       run: |
-        sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+        sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
           # Export environment variables for use within the SSH session
-          export ALIYUN_DOCKER_URL=${{ secrets.ALIYUN_DOCKER_URL }}
-          export ALIYUN_DOCKER_USERNAME=${{ secrets.ALIYUN_DOCKER_USERNAME }}
-          export ALIYUN_DOCKER_PASSWORD=${{ secrets.ALIYUN_DOCKER_PASSWORD }}
-          export DOCKER_IMAGE_LATEST=${DOCKER_IMAGE_LATEST}
-          export CONTAINER_NAME=${CONTAINER_NAME}
-    
+          export ALIYUN_DOCKER_URL=${{ env.ALIYUN_DOCKER_URL }}
+          export ALIYUN_DOCKER_USERNAME=${{ env.ALIYUN_DOCKER_USERNAME }}
+          export ALIYUN_DOCKER_PASSWORD=${{ env.ALIYUN_DOCKER_PASSWORD }}
+          export DOCKER_IMAGE_LATEST=${{ env.DOCKER_IMAGE_LATEST }}
+          export CONTAINER_NAME=${{ env.CONTAINER_NAME }}
+
           # Log in to Aliyun Docker Registry on the remote server
           echo "\$ALIYUN_DOCKER_PASSWORD" | sudo docker login --username "\$ALIYUN_DOCKER_USERNAME" --password-stdin "\$ALIYUN_DOCKER_URL"
           
@@ -69,6 +69,12 @@ jobs:
           
           # Pull the new Docker image from Aliyun
           sudo docker pull \$DOCKER_IMAGE_LATEST
+          
+          # Check if the pull was successful
+          if [ $? -ne 0 ]; then
+            echo "Failed to pull Docker image"
+            exit 1
+          fi
           
           # Run the new container
           sudo docker run -d --name \$CONTAINER_NAME --restart unless-stopped -p 80:80 \$DOCKER_IMAGE_LATEST

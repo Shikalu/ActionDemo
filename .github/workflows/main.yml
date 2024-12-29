@@ -34,10 +34,6 @@ jobs:
       run: |
         echo "${{ env.ALIYUN_DOCKER_PASSWORD }}" | docker login "${{ env.ALIYUN_DOCKER_URL }}" --username "${{ env.ALIYUN_DOCKER_USERNAME }}" --password-stdin
 
-    - name: Remove old Docker images (Optional)
-      run: |
-        docker images --format '{{.Repository}}:{{.Tag}}' | grep 'registry.cn-hangzhou.aliyuncs.com/sarariman/demo' | xargs -r docker rmi -f {}
-
     - name: Tag Docker image with timestamp
       run: docker tag my-image-name:${{ env.BUILD_TIMESTAMP }} ${ALIYUN_DOCKER_URL}/sarariman/demo:${{ env.BUILD_TIMESTAMP }}
 

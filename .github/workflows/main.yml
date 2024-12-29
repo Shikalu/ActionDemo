@@ -53,14 +53,23 @@ jobs:
     - name: Deploy to Server via SSH
       run: |
         sudo apt-get update && sudo apt-get install -y sshpass
-        sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
-          # Stop and remove old container
+        sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+          # Stop and remove old container if exists
           sudo docker ps -q -f "name=${CONTAINER_NAME}" | xargs -r sudo docker stop
           sudo docker ps -aq -f "name=${CONTAINER_NAME}" | xargs -r sudo docker rm
-
-          # Pull the new Docker image
+          
+          # Pull the new Docker image from Aliyun
           sudo docker pull ${ALIYUN_DOCKER_URL}/sarariman/demo:${{ env.BUILD_TIMESTAMP }}
-
+          
+          # Check if the pull was successful
+          if [ $? -ne 0 ]; then
+            echo "Failed to pull Docker image"
+            exit 1
+          fi
+          
           # Run the new container
-          sudo docker run -d --name ${CONTAINER_NAME} --restart unless-stopped -p 80:80 ${DOCKER_IMAGE_LATEST}
+          sudo docker run -d --name ${CONTAINER_NAME} --restart unless-stopped -p 80:80 ${ALIYUN_DOCKER_URL}/sarariman/demo:${{ env.BUILD_TIMESTAMP }}
+    
+          # Confirm the container is running
+          sudo docker ps -f "name=${CONTAINER_NAME}"
         EOF

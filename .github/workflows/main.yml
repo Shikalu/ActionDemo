@@ -62,6 +62,9 @@ jobs:
           # Stop and remove old container if exists
           sudo docker ps -q -f "name=\$CONTAINER_NAME" | xargs -r sudo docker stop
           sudo docker ps -aq -f "name=\$CONTAINER_NAME" | xargs -r sudo docker rm
+
+          # Remove old images related to this container (if any)
+          sudo docker images --format "{{.Repository}}:{{.Tag}}" | grep 'sarariman/demo' | grep -v 'latest' | xargs -r sudo docker rmi -f
           
           # Pull the new Docker image from Aliyun
           sudo docker pull \$DOCKER_IMAGE_LATEST

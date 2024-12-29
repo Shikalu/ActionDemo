@@ -59,7 +59,7 @@ jobs:
           sudo docker ps -aq -f "name=${CONTAINER_NAME}" | xargs -r sudo docker rm
 
           # Pull the new Docker image
-          sudo docker pull ${DOCKER_IMAGE_LATEST}
+          sudo docker pull ${ALIYUN_DOCKER_URL}/sarariman/demo:${{ env.BUILD_TIMESTAMP }}
 
           # Run the new container
           sudo docker run -d --name ${CONTAINER_NAME} --restart unless-stopped -p 80:80 ${DOCKER_IMAGE_LATEST}

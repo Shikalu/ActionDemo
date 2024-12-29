@@ -54,14 +54,14 @@ jobs:
       run: |
         sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
           # Export environment variables for use within the SSH session
-          ALIYUN_DOCKER_URL=${{ secrets.ALIYUN_DOCKER_URL }}
-          ALIYUN_DOCKER_USERNAME=${{ secrets.ALIYUN_DOCKER_USERNAME }}
-          ALIYUN_DOCKER_PASSWORD=${{ secrets.ALIYUN_DOCKER_PASSWORD }}
-          DOCKER_IMAGE_LATEST=${DOCKER_IMAGE_LATEST}
-          CONTAINER_NAME=${CONTAINER_NAME}
+          export ALIYUN_DOCKER_URL=${{ secrets.ALIYUN_DOCKER_URL }}
+          export ALIYUN_DOCKER_USERNAME=${{ secrets.ALIYUN_DOCKER_USERNAME }}
+          export ALIYUN_DOCKER_PASSWORD=${{ secrets.ALIYUN_DOCKER_PASSWORD }}
+          export DOCKER_IMAGE_LATEST=${DOCKER_IMAGE_LATEST}
+          export CONTAINER_NAME=${CONTAINER_NAME}
     
           # Log in to Aliyun Docker Registry on the remote server
-          echo "\$ALIYUN_DOCKER_PASSWORD" | sudo docker login "\$ALIYUN_DOCKER_URL" --username "\$ALIYUN_DOCKER_USERNAME" --password-stdin
+          echo "\$ALIYUN_DOCKER_PASSWORD" | sudo docker login --username "\$ALIYUN_DOCKER_USERNAME" --password-stdin "\$ALIYUN_DOCKER_URL"
           
           # Stop and remove old container if exists
           sudo docker ps -q -f "name=\$CONTAINER_NAME" | xargs -r sudo docker stop
@@ -69,12 +69,6 @@ jobs:
           
           # Pull the new Docker image from Aliyun
           sudo docker pull \$DOCKER_IMAGE_LATEST
-          
-          # Check if the pull was successful
-          if [ $? -ne 0 ]; then
-            echo "Failed to pull Docker image"
-            exit 1
-          fi
           
           # Run the new container
           sudo docker run -d --name \$CONTAINER_NAME --restart unless-stopped -p 80:80 \$DOCKER_IMAGE_LATEST

@@ -52,13 +52,18 @@ jobs:
 
     - name: Deploy to Server via SSH
       run: |
-        sudo apt-get update && sudo apt-get install -y sshpass
-        sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
-          export ALIYUN_DOCKER_URL=${{ secrets.ALIYUN_DOCKER_URL }}
-          export ALIYUN_DOCKER_USERNAME=${{ secrets.ALIYUN_DOCKER_USERNAME }}
-          export ALIYUN_DOCKER_PASSWORD=${{ secrets.ALIYUN_DOCKER_PASSWORD }}
-          export DOCKER_IMAGE_LATEST=${DOCKER_IMAGE_LATEST}
-          export CONTAINER_NAME=${CONTAINER_NAME}
+        sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+          # Export environment variables for use within the SSH session
+          ALIYUN_DOCKER_URL=${{ secrets.ALIYUN_DOCKER_URL }}
+          ALIYUN_DOCKER_USERNAME=${{ secrets.ALIYUN_DOCKER_USERNAME }}
+          ALIYUN_DOCKER_PASSWORD=${{ secrets.ALIYUN_DOCKER_PASSWORD }}
+          DOCKER_IMAGE_LATEST=${DOCKER_IMAGE_LATEST}
+          CONTAINER_NAME=${CONTAINER_NAME}
+
+          echo "ALIYUN_DOCKER_URL=\$ALIYUN_DOCKER_URL"
+          echo "ALIYUN_DOCKER_USERNAME=\$ALIYUN_DOCKER_USERNAME"
+          echo "DOCKER_IMAGE_LATEST=\$DOCKER_IMAGE_LATEST"
+          echo "CONTAINER_NAME=\$CONTAINER_NAME"
     
           # Log in to Aliyun Docker Registry on the remote server
           echo "\$ALIYUN_DOCKER_PASSWORD" | sudo docker login "\$ALIYUN_DOCKER_URL" --username "\$ALIYUN_DOCKER_USERNAME" --password-stdin

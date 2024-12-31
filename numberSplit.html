@@ -1,158 +1,158 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <title>数的分合</title>
-    <style>
-      .container {
-        position: relative;
-        width: 600px;
-        height: 600px;
-        margin: auto;
-        padding-top: 50px;
-      }
-      .box {
-        width: 200px;
-        height: 200px;
-        border: 1px solid black;
-        position: absolute;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start; /* 确保内容从顶部开始排列 */
-        font-size: 20px;
-        padding-top: 5px; /* 给计数器留出空间 */
-      }
-      #topBox {
-        top: 0;
-        left: 150px;
-      }
-      #leftBottomBox,
-      #rightBottomBox {
-        bottom: 0;
-      }
-      #leftBottomBox {
-        left: 0;
-      }
-      #rightBottomBox {
-        right: 0;
-      }
-      .apple {
-        width: 25px;
-        height: 25px;
-        background-color: red;
-        border-radius: 50%;
-        margin: 2px;
-        cursor: move;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div
-        id="topBox"
-        class="box"
-        ondrop="drop(event)"
-        ondragover="allowDrop(event)"
-      >
-        <span id="topCount">5</span>
-        <div id="apples">
-          <div
-            class="apple"
-            draggable="true"
-            ondragstart="dragStart(event)"
-          ></div>
-          <div
-            class="apple"
-            draggable="true"
-            ondragstart="dragStart(event)"
-          ></div>
-          <div
-            class="apple"
-            draggable="true"
-            ondragstart="dragStart(event)"
-          ></div>
-          <div
-            class="apple"
-            draggable="true"
-            ondragstart="dragStart(event)"
-          ></div>
-          <div
-            class="apple"
-            draggable="true"
-            ondragstart="dragStart(event)"
-          ></div>
-        </div>
-      </div>
-      <div
-        id="leftBottomBox"
-        class="box"
-        ondrop="drop(event)"
-        ondragover="allowDrop(event)"
-      >
-        <span id="leftCount">0</span>
-      </div>
-      <div
-        id="rightBottomBox"
-        class="box"
-        ondrop="drop(event)"
-        ondragover="allowDrop(event)"
-      >
-        <span id="rightCount">0</span>
+<head>
+  <meta charset="UTF-8" />
+  <title>数字5的分合</title>
+  <style>
+    .container {
+      position: relative;
+      width: 600px;
+      height: 600px;
+      margin: auto;
+      padding-top: 50px;
+    }
+    .box {
+      width: 250px;
+      height: 250px;
+      border: 1px solid black;
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start; /* 确保内容从顶部开始排列 */
+      font-size: 20px;
+      padding-top: 5px; /* 给计数器留出空间 */
+    }
+    #topBox {
+      top: 0;
+      left: 150px;
+    }
+    #leftBottomBox,
+    #rightBottomBox {
+      bottom: 0;
+    }
+    #leftBottomBox {
+      left: 0;
+    }
+    #rightBottomBox {
+      right: 0;
+    }
+    .apple {
+      width: 35px;
+      height: 35px;
+      background-color: red;
+      border-radius: 50%;
+      margin: 2px;
+      cursor: move;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="topBox" class="box" ondrop="drop(event)" ondragover="allowDrop(event)">
+      <span id="topCount">5</span>
+      <div id="apples">
+        <div class="apple" draggable="true" ondragstart="dragStart(event)" ontouchstart="touchDragStart(event)"></div>
+        <div class="apple" draggable="true" ondragstart="dragStart(event)" ontouchstart="touchDragStart(event)"></div>
+        <div class="apple" draggable="true" ondragstart="dragStart(event)" ontouchstart="touchDragStart(event)"></div>
+        <div class="apple" draggable="true" ondragstart="dragStart(event)" ontouchstart="touchDragStart(event)"></div>
+        <div class="apple" draggable="true" ondragstart="dragStart(event)" ontouchstart="touchDragStart(event)"></div>
       </div>
     </div>
+    <div id="leftBottomBox" class="box" ondrop="drop(event)" ondragover="allowDrop(event)" ontouchmove="touchMove(event)" ontouchend="touchEnd(event)">
+      <span id="leftCount">0</span>
+    </div>
+    <div id="rightBottomBox" class="box" ondrop="drop(event)" ondragover="allowDrop(event)" ontouchmove="touchMove(event)" ontouchend="touchEnd(event)">
+      <span id="rightCount">0</span>
+    </div>
+  </div>
 
-    <script>
-      // 假设这是在页面加载时执行的代码
-      document.querySelectorAll(".apple").forEach((apple, index) => {
-        apple.id = `apple-${index}`;
-      });
-      function allowDrop(event) {
-        event.preventDefault();
+  <script>
+    document.querySelectorAll(".apple").forEach((apple, index) => {
+      apple.id = `apple-${index}`;
+    });
+
+    let touchData = null;
+
+    function allowDrop(event) {
+      event.preventDefault();
+    }
+
+    function dragStart(event) {
+      event.dataTransfer.setData("appleId", event.target.id);
+    }
+
+    function touchDragStart(event) {
+      const apple = event.target.closest('.apple');
+      if (apple) {
+        touchData = { appleId: apple.id, startX: event.touches[0].clientX, startY: event.touches[0].clientY };
+        apple.style.opacity = '0.5'; // 可选：视觉反馈
       }
+    }
 
-      function dragStart(event) {
-        // 设置正在拖拽的苹果标识
-        event.dataTransfer.setData("appleId", event.target.id);
+    function touchMove(event) {
+      if (touchData) {
+        const touch = event.touches[0];
+        event.preventDefault(); // 防止滚动等默认行为
+        // 计算偏移量
+        const dx = touch.clientX - touchData.startX;
+        const dy = touch.clientY - touchData.startY;
+        const apple = document.getElementById(touchData.appleId);
+        apple.style.transform = `translate(${dx}px, ${dy}px)`;
       }
+    }
 
-      function drop(event) {
+    function touchEnd(event) {
+      if (touchData) {
         event.preventDefault();
-        const appleId = event.dataTransfer.getData("appleId");
-        if (appleId) {
-          let target = event.target;
-          // 找到最接近的 .box 元素
-          while (target && !target.classList.contains("box")) {
-            target = target.parentElement;
-          }
-          if (target && target.classList.contains("box")) {
-            // 获取当前正在被拖拽的苹果
-            const appleBeingDragged = document.getElementById(appleId);
-            if (appleBeingDragged) {
-              // 将苹果移动到目标盒子
-              target.appendChild(appleBeingDragged);
+        const apple = document.getElementById(touchData.appleId);
+        apple.style.opacity = ''; // 恢复透明度
+        apple.style.transform = ''; // 清除位移
 
-              // 更新计数器
-              updateCounts();
-            }
+        // 模拟 drop 事件
+        const target = document.elementFromPoint(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
+        if (target && target.closest('.box')) {
+          drop({ target });
+        } else {
+          // 如果不在目标盒子内，则返回原位置
+          document.getElementById('topBox').appendChild(apple);
+        }
+        touchData = null;
+        updateCounts();
+      }
+    }
+
+    function drop(event) {
+      event.preventDefault();
+      const appleId = event.dataTransfer ? event.dataTransfer.getData("appleId") : touchData?.appleId;
+      if (appleId) {
+        let target = event.target;
+        while (target && !target.classList.contains("box")) {
+          target = target.parentElement;
+        }
+        if (target && target.classList.contains("box")) {
+          const appleBeingDragged = document.getElementById(appleId);
+          if (appleBeingDragged) {
+            target.appendChild(appleBeingDragged);
+            updateCounts();
           }
         }
       }
+    }
 
-      function updateCounts() {
-        const boxes = ["topBox", "leftBottomBox", "rightBottomBox"];
-        boxes.forEach((boxId) => {
-          let box = document.getElementById(boxId);
-          if (box) {
-            // 直接遍历所有子节点以找到所有的苹果元素
-            let apples = [...box.querySelectorAll(".apple")].length;
-            let countElement = box.querySelector("span"); // 使用 querySelector 来获取计数器
-            if (countElement) {
-              countElement.textContent = apples;
-            }
+    function updateCounts() {
+      const boxes = ["topBox", "leftBottomBox", "rightBottomBox"];
+      boxes.forEach((boxId) => {
+        let box = document.getElementById(boxId);
+        if (box) {
+          let apples = [...box.querySelectorAll(".apple")].length;
+          let countElement = box.querySelector("span");
+          if (countElement) {
+            countElement.textContent = apples;
           }
-        });
-      }
-    </script>
-  </body>
+        }
+      });
+    }
+  </script>
+</body>
 </html>

@@ -47,33 +47,37 @@ jobs:
       run: docker push ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
 
     - name: Deploy to Server via SSH
-      uses: appleboy/ssh-action@v0.1.8
-      with:
-        host: ${{ secrets.SERVER_IP }}
-        username: ${{ secrets.SERVER_USER_NAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }} # 使用 SSH 私钥代替密码
-        script: |
-          # 登录到阿里云镜像仓库
-          echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin "${{ secrets.DOCKER_LOGIN_URL }}" --password-stdin
+      run: |
+        sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << EOF
+          # Export environment variables for use within the SSH session
+          export ALIYUN_DOCKER_URL=${{ env.ALIYUN_DOCKER_URL }}
+          export ALIYUN_DOCKER_USERNAME=${{ env.ALIYUN_DOCKER_USERNAME }}
+          export ALIYUN_DOCKER_PASSWORD=${{ env.ALIYUN_DOCKER_PASSWORD }}
+          export DOCKER_IMAGE_LATEST=${{ env.DOCKER_IMAGE_LATEST }}
+          export CONTAINER_NAME=${{ env.CONTAINER_NAME }}
+
+          # Log in to Aliyun Docker Registry on the remote server
+          echo "\$ALIYUN_DOCKER_PASSWORD" | sudo docker login --username "\$ALIYUN_DOCKER_USERNAME" --password-stdin "\$ALIYUN_DOCKER_URL"
           
-          # 停止并移除旧容器（如果存在）
-          sudo docker ps -q -f "name=${{ env.CONTAINER_NAME }}" | xargs -r sudo docker stop
-          sudo docker ps -aq -f "name=${{ env.CONTAINER_NAME }}" | xargs -r sudo docker rm
+          # Stop and remove old container if exists
+          sudo docker ps -q -f "name=\$CONTAINER_NAME" | xargs -r sudo docker stop
+          sudo docker ps -aq -f "name=\$CONTAINER_NAME" | xargs -r sudo docker rm
+
+          # Remove only the untagged images for the specific repository
+          sudo docker images --format "{{.ID}}" \${ALIYUN_DOCKER_URL}/sarariman/demo | grep -v \$(sudo docker images --filter "reference=\${ALIYUN_DOCKER_URL}/sarariman/demo:latest" --format "{{.ID}}") | xargs -r sudo docker rmi -f
           
-          # 移除特定仓库的未标记镜像
-          sudo docker images --format "{{.ID}}" "${{ secrets.DOCKER_LOGIN_URL }}/sarariman/demo" | grep -v "$(sudo docker images --filter "reference=${{ secrets.DOCKER_LOGIN_URL }}/sarariman/demo:latest" --format "{{.ID}}")" | xargs -r sudo docker rmi -f
+          # Pull the new Docker image from Aliyun
+          sudo docker pull \$DOCKER_IMAGE_LATEST
           
-          # 拉取新的 Docker 镜像
-          sudo docker pull "${{ env.DOCKER_IMAGE_LATEST }}"
-          
-          # 检查拉取是否成功
+          # Check if the pull was successful
           if [ $? -ne 0 ]; then
             echo "Failed to pull Docker image"
             exit 1
           fi
           
-          # 运行新的容器
-          sudo docker run -d --name ${{ env.CONTAINER_NAME }} --restart unless-stopped -p 80:80 "${{ env.DOCKER_IMAGE_LATEST }}"
+          # Run the new container
+          sudo docker run -d --name \$CONTAINER_NAME --restart unless-stopped -p 80:80 \$DOCKER_IMAGE_LATEST
           
-          # 确认容器正在运行
-          sudo docker ps -f "name=${{ env.CONTAINER_NAME }}"
+          # Confirm the container is running
+          sudo docker ps -f "name=\$CONTAINER_NAME"
+        EOF

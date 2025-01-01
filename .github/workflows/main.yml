@@ -54,7 +54,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }} # 使用 SSH 私钥代替密码
         script: |
           # 登录到阿里云 Docker 注册表
-          echo "${{ secrets.ALIYUN_DOCKER_PASSWORD }}" | sudo docker login --username "${{ secrets.ALIYUN_DOCKER_USERNAME }}" --password-stdin "${{ secrets.DOCKER_LOGIN_URL }}"
+          echo "${{ env.ALIYUN_DOCKER_PASSWORD }}" | sudo docker login --username "${{ env.ALIYUN_DOCKER_USERNAME }}" --password-stdin "${{ env.DOCKER_LOGIN_URL }}"
           
           # 停止并移除旧容器（如果存在）
           sudo docker ps -q -f "name=${{ env.CONTAINER_NAME }}" | xargs -r sudo docker stop

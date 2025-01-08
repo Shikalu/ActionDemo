@@ -31,8 +31,11 @@ jobs:
       run: docker build . --file Dockerfile --tag my-image-name:${{ env.BUILD_TIMESTAMP }}
 
     - name: Log in to Aliyun Docker Registry
-      run: |
-        echo "${{ env.ALIYUN_DOCKER_PASSWORD }}" | docker login "${{ env.ALIYUN_DOCKER_URL }}" --username "${{ env.ALIYUN_DOCKER_USERNAME }}" --password-stdin
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.ALIYUN_DOCKER_URL }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Tag Docker image with timestamp
       run: docker tag my-image-name:${{ env.BUILD_TIMESTAMP }} ${ALIYUN_DOCKER_URL}/sarariman/demo:${{ env.BUILD_TIMESTAMP }}

@@ -1,0 +1,182 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f5f5f5;
+  font-family: 'Microsoft YaHei', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.title {
+  color: #2c3e50;
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.instruction {
+  color: #7f8c8d;
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  height: auto;
+  min-height: 500px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.box {
+  width: min(280px, 90vw);
+  min-height: min(280px, 90vw);
+  height: auto;
+  border: 3px solid #4CAF50;
+  border-radius: 15px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: white;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  padding: 20px;
+  touch-action: none;
+  overflow: visible;
+}
+
+.box span {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+#apples {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  max-width: 240px;
+  padding: 5px;
+  min-height: 0;
+}
+
+.bottom-boxes {
+  display: flex;
+  gap: 40px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.apple {
+  width: min(45px, 11vw);
+  height: min(45px, 11vw);
+  margin: 2px;
+  cursor: move;
+  touch-action: none;
+  background-image: url('apple.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.apple:hover {
+  transform: scale(1.1);
+}
+
+.apple.dragging {
+  transform: scale(1.2);
+  opacity: 0.8;
+}
+
+@media screen and (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .instruction {
+    font-size: 1rem;
+  }
+
+  .container {
+    padding: 20px;
+  }
+
+  .box {
+    width: min(240px, 90vw);
+    height: min(240px, 90vw);
+    padding: 15px;
+  }
+
+  #apples {
+    max-width: 210px;
+  }
+
+  .bottom-boxes {
+    gap: 20px;
+  }
+
+  .apple {
+    width: min(40px, 10vw);
+    height: min(40px, 10vw);
+    margin: 2px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .container {
+    padding: 15px;
+  }
+
+  .box {
+    width: min(200px, 90vw);
+    height: min(200px, 90vw);
+    padding: 10px;
+  }
+
+  #apples {
+    max-width: 180px;
+  }
+
+  .bottom-boxes {
+    gap: 15px;
+  }
+
+  .apple {
+    width: min(35px, 9vw);
+    height: min(35px, 9vw);
+    margin: 2px;
+  }
+}

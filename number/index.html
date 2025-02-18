@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html lang="zh-CN">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数的分合演示</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1 class="title">数的分合演示</h1>
+    <p class="instruction">通过拖拽苹果来体验数的分解与组合</p>
+    <div class="container">
+      <div id="topBox" class="box" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+        <span id="topCount">5</span>
+        <div id="apples">
+          <div class="apple" draggable="true"></div>
+          <div class="apple" draggable="true"></div>
+          <div class="apple" draggable="true"></div>
+          <div class="apple" draggable="true"></div>
+          <div class="apple" draggable="true"></div>
+        </div>
+      </div>
+      <div class="bottom-boxes">
+        <div id="leftBottomBox" class="box" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+          <span id="leftCount">0</span>
+        </div>
+        <div id="rightBottomBox" class="box" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+          <span id="rightCount">0</span>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

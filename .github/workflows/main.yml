@@ -79,7 +79,7 @@ jobs:
           fi
           
           # Run the new container
-          sudo docker run -d --name \$CONTAINER_NAME --restart unless-stopped -p 80:8080 \$DOCKER_IMAGE_LATEST
+          sudo docker run -d --name \$CONTAINER_NAME --restart unless-stopped -p 8080:80 \$DOCKER_IMAGE_LATEST
           
           # Confirm the container is running
           sudo docker ps -f "name=\$CONTAINER_NAME"

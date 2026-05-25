@@ -19,7 +19,7 @@ jobs:
       SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
       SSH_USER: ${{ secrets.SERVER_USER_NAME }}
       SERVER_IP: ${{ secrets.SERVER_IP }}
-      DOCKER_IMAGE_LATEST: ${{ secrets.DOCKER_LOGIN_URL }}/sarariman/demo:latest
+      DOCKER_IMAGE_LATEST: ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
       CONTAINER_NAME: demo-container
       BUILD_TIMESTAMP: ${{ github.run_number }} # 使用唯一的运行编号作为时间戳
 
@@ -31,23 +31,23 @@ jobs:
       run: docker build . --file Dockerfile --tag my-image-name:${{ env.BUILD_TIMESTAMP }}
 
     - name: Log in to Aliyun Docker Registry
-      uses: actions/docker/login@v1  # 保持你原有的 login 方式
+      uses: docker/login-action@v2
       with:
         registry: ${{ env.ALIYUN_DOCKER_URL }}
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Tag Docker image with timestamp
-      run: docker tag my-image-name:${{ env.BUILD_TIMESTAMP }} ${{ env.ALIYUN_DOCKER_URL }}/sarariman/demo:${{ env.BUILD_TIMESTAMP }}
+      run: docker tag my-image-name:${{ env.BUILD_TIMESTAMP }} ${ALIYUN_DOCKER_URL}/sarariman/demo:${{ env.BUILD_TIMESTAMP }}
 
     - name: Push Docker image with timestamp to Aliyun registry
-      run: docker push ${{ env.ALIYUN_DOCKER_URL }}/sarariman/demo:${{ env.BUILD_TIMESTAMP }}
+      run: docker push ${ALIYUN_DOCKER_URL}/sarariman/demo:${{ env.BUILD_TIMESTAMP }}
 
     - name: Tag Docker image as latest
-      run: docker tag my-image-name:${{ env.BUILD_TIMESTAMP }} ${{ env.ALIYUN_DOCKER_URL }}/sarariman/demo:latest
+      run: docker tag my-image-name:${{ env.BUILD_TIMESTAMP }} ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
 
     - name: Push Docker image as latest to Aliyun registry
-      run: docker push ${{ env.ALIYUN_DOCKER_URL }}/sarariman/demo:latest
+      run: docker push ${ALIYUN_DOCKER_URL}/sarariman/demo:latest
 
     - name: Deploy to Server via SSH
       run: |
@@ -66,20 +66,19 @@ jobs:
           sudo docker ps -q -f "name=\$CONTAINER_NAME" | xargs -r sudo docker stop
           sudo docker ps -aq -f "name=\$CONTAINER_NAME" | xargs -r sudo docker rm
 
-          # 🧼【目录与清理逻辑适配】精准清除老旧镜像层，确保变量正确转义
+          # Remove only the untagged images for the specific repository
           sudo docker images --format "{{.ID}}" \${ALIYUN_DOCKER_URL}/sarariman/demo | grep -v \$(sudo docker images --filter "reference=\${ALIYUN_DOCKER_URL}/sarariman/demo:latest" --format "{{.ID}}") | xargs -r sudo docker rmi -f
           
           # Pull the new Docker image from Aliyun
           sudo docker pull \$DOCKER_IMAGE_LATEST
           
           # Check if the pull was successful
-          if [ \$? -ne 0 ]; then
+          if [ $? -ne 0 ]; then
             echo "Failed to pull Docker image"
             exit 1
           fi
           
-          # 🐳【核心网络打通】加入到你当前 dev-env 统一管理的默认容器网络中
-          # 这样你的 demo 容器才能在内部直接通过“mysql-dev”和“nacos-dev”连上中间件
+          # Run the new container
           sudo docker run -d \
             --name \$CONTAINER_NAME \
             --network dev-env_default \
